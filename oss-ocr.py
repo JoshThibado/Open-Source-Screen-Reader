@@ -2,11 +2,12 @@ from PIL import Image
 import pytesseract
 
 import cv2
-font = cv2.FONT_HERSHEY_PLAIN
 
 import pyttsx3
-
 from TTS.api import TTS
+
+# Set display font for cv2 if needed
+font = cv2.FONT_HERSHEY_PLAIN
 
 
 def list_ports():
@@ -35,51 +36,20 @@ def list_ports():
         dev_port +=1
     return available_ports,working_ports,non_working_ports
 
-def convert(frame):
-    y=350
-    x=137
-    y2=460
-    x2=500
-    h=460
-    w=500
-
-    # Load from png
-    #img_cv = cv2.imread(r'./test.png')
-    
+def get_ocr_text(frame):
     # Load from frame
-    #img_cv = frame[y:y2, x:x2]
     img_cv = frame
-    
-    #img_to_conv = cv2.resize(img_cv, (0,0), fx=4, fy=4) 
-    #cv2.imshow('frame', img_cv)
-    
-    # By default OpenCV stores images in BGR format and since pytesseract assumes RGB format,
-    # we need to convert from BGR to RGB format/mode:
     img_rgb = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
-    
-    #cv2.imshow('Input', img_rgb)
     
     # OCR
     text = pytesseract.image_to_string(img_rgb, lang='eng')
     print(text)
-
     return text
 
-def get_ocr_text():
+def get_ocr_text_from_image():
     # Load from png
     img_cv = cv2.imread(r'/home/josh/projects/oss-ocr/test.png')
-    
-    # Load from frame
-    #img_cv = frame[y:y2, x:x2]
-    
-    #img_to_conv = cv2.resize(img_cv, (0,0), fx=4, fy=4) 
-    #cv2.imshow('frame', img_cv)
-    
-    # By default OpenCV stores images in BGR format and since pytesseract assumes RGB format,
-    # we need to convert from BGR to RGB format/mode:
     img_rgb = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
-    
-    #cv2.imshow('Input', img_rgb)
     
     # OCR
     text = pytesseract.image_to_string(img_rgb, lang='eng')
@@ -102,30 +72,21 @@ def ml_tts(input_text):
 def simple_tts(input_text):
     print("Input text is: " + input_text)
     engine = pyttsx3.init()
-    rate = engine.getProperty('rate')   # getting details of current speaking rate
-    print (rate)                        #printing current voice rate
     engine.setProperty('rate', 150)     # setting up new voice rate
     engine.say(input_text)
     engine.runAndWait()
 
-
 def main():
-    sentence =  "Hello there, welcome to the world"
-    #sentence = get_ocr_text()
-    #ml_tts()
-    #simple_tts(sentence)
-    
-    
     # Get input
     print(list_ports)
     videoCaptureObject = cv2.VideoCapture(0)
     
     while(True):
         ret,frame = videoCaptureObject.read()
-        converted = convert(frame)
+        text = get_ocr_text(frame)
         cv2.imshow('Input', frame)
         if(cv2.waitKey(1) & 0xFF == ord('r')):
-            simple_tts(converted)
+            simple_tts(text)
         if(cv2.waitKey(1) & 0xFF == ord('q')):
             videoCaptureObject.release()
             cv2.destroyAllWindows()
